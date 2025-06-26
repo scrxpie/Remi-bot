@@ -1,0 +1,23 @@
+{
+  "name": "RemiBot",
+  "version": "1.0.0",
+  "description": "Owo tipi komut hatırlatıcı bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "owo",
+    "hatırlatıcı",
+    "reminder"
+  ],
+  "author": "SeninAdın",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.3.2"
+  }
+}
