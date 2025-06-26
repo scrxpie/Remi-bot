@@ -1,28 +1,46 @@
-const Prefix = require('../../models/prefixSchema');
+const { EmbedBuilder } = require('discord.js');
+const { getPrefix, savePrefix } = require('../../utils/prefixUtils');
 
 module.exports = {
   name: 'prefix',
-  description: 'Allows you to change the bot\'s prefix. Admins only.',
-  async execute(message, args) {
+  description: 'Set or view the current server prefix.',
+  async execute(message, args, client) {
+    // Check for admin permission
     if (!message.member.permissions.has('Administrator')) {
-      return message.reply("🚫 You need the `Administrator` permission to use this command.");
+      return message.reply('❌ You need **Administrator** permission to use this command.');
     }
 
-    const newPrefix = args[0];
-    if (!newPrefix) {
-      return message.reply("❗ Please provide a new prefix. Example: `r? prefix !`");
+    const guildId = message.guild.id;
+
+    // Show current prefix
+    if (!args[0]) {
+      const currentPrefix = await getPrefix(guildId);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor('#2f3136')
+            .setTitle('🔧 Current Prefix')
+            .setDescription(`This server's prefix is: \`${currentPrefix}\``)
+        ]
+      });
     }
+
+    // Set new prefix
+    const newPrefix = args[0];
 
     if (newPrefix.length > 5) {
-      return message.reply("⚠️ The prefix can’t be longer than 5 characters.");
+      return message.reply('❌ Prefix cannot be longer than 5 characters.');
     }
 
-    await Prefix.findOneAndUpdate(
-      { guildId: message.guild.id },
-      { prefix: newPrefix },
-      { upsert: true }
-    );
+    await savePrefix(guildId, newPrefix);
 
-    message.channel.send(`✅ Prefix has been successfully set to \`${newPrefix}\`.`);
+    return message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor('#2f3136')
+          .setTitle('✅ Prefix Updated')
+          .setDescription(`New prefix is: \`${newPrefix}\``)
+      ]
+    });
   }
 };
