@@ -1,5 +1,4 @@
-const getPrefix = require('../utils/getPrefix');
-const { saveGuildPrefix } = require('../utils/prefixUtils');
+const { getPrefix, savePrefix } = require('../utils/prefixUtils');
 const { startHuntReminderForUser } = require('../handlers/reminderHandler');
 
 module.exports = {
@@ -9,17 +8,17 @@ module.exports = {
 
     const content = message.content.toLowerCase().replace(/\s+/g, ' ').trim();
 
-    // 🔧 Prefix değiştirme mesajını algıla (owo bot)
+    // 🔧 Owo prefix değiştirme mesajı algılama
     if (content.includes('you successfully changed my server prefix to')) {
       const prefixMatch = content.match(/prefix to \*\*`(.+?)`\*\*/);
       if (prefixMatch) {
         const newPrefix = prefixMatch[1];
-        await saveGuildPrefix(message.guild.id, newPrefix);
+        await savePrefix(message.guild.id, newPrefix);
         console.log(`Prefix ${newPrefix} olarak kaydedildi.`);
       }
     }
 
-    // ✅ Owo/w hunt mesajı veya owh/wh kısaltması kontrolü
+    // ✅ Owo/w hunt ve owh/wh
     const owoPrefixes = ['owo', 'w'];
     const isOwoHunt = owoPrefixes.some(p => content === `${p} hunt` || content === `${p}h`);
 
@@ -27,7 +26,7 @@ module.exports = {
       startHuntReminderForUser(client, message.author.id, message.channel);
     }
 
-    // ✅ Normal bot komutlarını çalıştır
+    // ✅ Komut sistemi
     const prefix = await getPrefix(message.guild.id);
     if (!message.content.startsWith(prefix)) return;
 
