@@ -1,4 +1,4 @@
-const Prefix = require('../models/prefixSchema');
+const Prefix = require('../../models/prefixSchema');
 
 module.exports = {
   name: 'prefix',
