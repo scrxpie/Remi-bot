@@ -21,7 +21,7 @@ async function startHuntReminderForUser(client, userId, channel) {
     const updated = await Reminder.findOne({ userId });
     if (!updated || !updated.hunt.enabled) return;
 
-    const messageContent = `${updated.hunt.respond ? `<@${userId}> ` : ''}Hunt Time ${emoji}`;
+    const messageContent = `${updated.hunt.respond ? `<@${userId}> ` : ''}**Hunt Time** ${emoji}`;
 
     const sent = await channel.send(messageContent);
 
