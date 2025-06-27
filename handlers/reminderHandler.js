@@ -1,8 +1,8 @@
+const GuildSettings = require('../models/guildSettingsSchema');
 const Reminder = require('../models/reminderSchema');
 const getRandomEmoji = require('../utils/getRandomEmoji');
 
-const REMINDER_COOLDOWN = 15 * 1000; // 15 saniye
-
+const REMINDER_COOLDOWN = 15 * 1000;
 const userCooldowns = new Map();
 
 async function startHuntReminderForUser(client, userId, channel) {
@@ -11,26 +11,25 @@ async function startHuntReminderForUser(client, userId, channel) {
 
   const now = Date.now();
   const last = userCooldowns.get(userId) || 0;
-
   if (now - last < REMINDER_COOLDOWN) return;
-
   userCooldowns.set(userId, now);
 
   setTimeout(async () => {
-    const emoji = getRandomEmoji();
     const updated = await Reminder.findOne({ userId });
     if (!updated || !updated.hunt.enabled) return;
 
-    const messageContent = `${updated.hunt.respond ? `<@${userId}> ` : ''}**Hunt Time** ${emoji}`;
+    const guildData = await GuildSettings.findOne({ guildId: channel.guild.id });
+    const baseMessage = guildData?.huntReminderMessage || '**Hunt Time**';
+    const emoji = getRandomEmoji();
 
-    const sent = await channel.send(messageContent);
+    const content = `${updated.hunt.respond ? `<@${userId}> ` : ''}${baseMessage} ${emoji}`;
+    const sent = await channel.send(content);
 
     if (updated.hunt.autoDelete) {
       setTimeout(() => {
         sent.delete().catch(() => null);
-      }, 5000); // 5 saniye sonra sil
+      }, 5000);
     }
-
   }, REMINDER_COOLDOWN);
 }
 
