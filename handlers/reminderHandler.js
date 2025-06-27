@@ -1,23 +1,37 @@
 const Reminder = require('../models/reminderSchema');
 const getRandomEmoji = require('../utils/getRandomEmoji');
 
-async function startHuntReminderForUser(client, userId, channel) {
-  let userData = await Reminder.findOne({ userId });
-  if (!userData) {
-    userData = await Reminder.create({ userId });
-  }
+const REMINDER_COOLDOWN = 15 * 1000; // 15 saniye
 
-  if (!userData.hunt.enabled) {
-    userData.hunt.enabled = true;
-    await userData.save();
-  }
+const userCooldowns = new Map();
+
+async function startHuntReminderForUser(client, userId, channel) {
+  const data = await Reminder.findOne({ userId });
+  if (!data || !data.hunt.enabled) return;
+
+  const now = Date.now();
+  const last = userCooldowns.get(userId) || 0;
+
+  if (now - last < REMINDER_COOLDOWN) return;
+
+  userCooldowns.set(userId, now);
 
   setTimeout(async () => {
-    let msg = userData.hunt.message || "Hunt Time";
-    msg += ' ' + getRandomEmoji();
+    const emoji = getRandomEmoji();
+    const updated = await Reminder.findOne({ userId });
+    if (!updated || !updated.hunt.enabled) return;
 
-    channel.send({ content: msg });
-  }, 15000);
+    const messageContent = `${updated.hunt.respond ? `<@${userId}> ` : ''}Hunt Time ${emoji}`;
+
+    const sent = await channel.send(messageContent);
+
+    if (updated.hunt.autoDelete) {
+      setTimeout(() => {
+        sent.delete().catch(() => null);
+      }, 5000); // 5 saniye sonra sil
+    }
+
+  }, REMINDER_COOLDOWN);
 }
 
 module.exports = { startHuntReminderForUser };
